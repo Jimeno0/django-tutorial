@@ -22,6 +22,7 @@ A proyect can contain multiple apps
 * Create an index view at `polls/views.py`:
   * Import `HttpResponse` module from `django.http`
   * Define `index` function:
+
     ```python 
     def index(response):
       return HttpRespose('Hello mode fokas!')
@@ -30,20 +31,24 @@ A proyect can contain multiple apps
   * Import the `url` module from `django.conf.urls`
   * Import the `views` module
   * create the `urlpatterns` list:
+
     ```python
     urlpatterns = [
       url(r'^$', views.index, name='index'),
     ]
     ```
+
 * Inlude the `polls/urls` in the proyect root urls list:
   * Import the `include` mudule from `django.conf.urls`
   * Include the module inside the urlpatterns list:
+
     ```python
     urlpatterns = [
       url(r'^polls/', include('polls/urls')),
       url(r'^admin/', admin.site.urls),
     ]
     ```
+    
 Notes: 
 * When using include() the regular expression doesnt have `$` (end-of-string match character)
 * String inside include

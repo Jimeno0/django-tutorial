@@ -150,3 +150,158 @@ Firts we need to create user who can logging to the admin site:
 
   admin.site.register(Question)
   ```
+## Part III
+
+A view in django is a type of web page with a specific function and template
+
+URLconfs maps URLs patterns (regex) to views
+
+### Writing more views
+
+* In `views.py` add diferents views:
+
+  ```python 
+  def detail(request, question_id):
+  return HttpResponse('Detail page for question id %s' % question_id)
+  #......
+  ```
+* In `urls.py` map these views:
+
+  ```python
+  urlpatterns = [
+    #...
+    url(r'^(?P<question_id>[0-9]+)/$', views.detail, name='detail'),
+    #...
+  ] 
+  ```
+### Using API to show latest questions
+
+To display the question text ordered by published date:
+
+```python
+
+#...
+from .models import Question
+
+def index (request)
+  latest_questions = Question.objects.order_by('-date_published')[:5]
+  output = ','.join(q.question_text for q in latest_questions)
+  retun HttpResponse(output)
+#...
+```
+
+### Creating templates
+
+#### Without shortcut
+
+* In `polls/views.py`:
+  * `from django.template import loader`
+  * Then we change the index method:
+
+  ```python
+  #...
+  def index(request):
+    latest_questions_list = Question.objects.order_by('-date_published')[:5]
+    template = loader.get_template('polls/index.html')
+    context = {
+      `latest_questions_list` : latest_questions_list
+    }
+    return HttpResponse(template.render(context,request))
+  #...
+  ```
+
+* Then we create out template in `polls/templates/polls/index.html`
+  
+  ```html
+  {% if latest_questions_list %}
+    <ul>
+    {% for question in latest_question_list %}
+      <li>
+      <a href="/polls/{{question.id}}">{{question.question_text}}</a>
+      </li>
+    {% endfor %}
+    </ul>
+  {% else %}
+
+    <p>No questions availables</p>
+  {% endif %}
+  ```
+#### Using the render shortcut
+
+
+
+* `from django.shortcut import render`
+* In the `polls/urls.py` change the index method:
+  
+  ```python
+  def index(request):
+    latest_questions_list = Question.objects.order_by('-date_published')
+    context = {
+      'latest_questions_list' : latest_questions_list,
+    }
+    return render(request, 'polls/index.html', context)
+  ```
+
+### 404 Error
+
+#### Without shortcut
+  * `from django.http import Http404`
+  * In the `details()` polls views method:
+
+  ```python
+  def details (request):
+    try:
+      question = Question.objects.get(pk=question_id)
+    except Question.DoesNotExisit
+      raise Http404('The question does not exist')
+    return render(request, 'polls/details.html', { 'question' : quesiton })
+  ```
+#### Using the `get_object_or_404`shortcut
+
+```python
+def details(request):
+  question = get_object_or_404(Question, pk=question_id)
+  return render(request,'polls/details.html,{ 'question': question}')
+```
+
+Then we create our html template
+
+```html
+
+<h1>{{question.question_text}}</h1>
+<ul>
+  {% for choice in question.choice_set.all %}
+
+    <li>{{choice.choice_text}}</li>
+  {% endfor %}
+</ul>
+
+```
+
+### Removing hardcoded URLs templates
+
+To diference between apps we namespace our url app set:
+
+```python 
+
+app_name = 'polls'
+
+urlPatterns = [
+#...
+url(r'^(?P<question_id>[0-9]+)/$', views.details, name = 'details')
+]
+
+```
+
+Then we can call the url name in the template by:
+
+```html
+{% urls 'polls:details' question_id %}
+
+
+```
+
+## Part IV
+
+
+

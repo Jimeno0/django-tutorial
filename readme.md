@@ -303,5 +303,75 @@ Then we can call the url name in the template by:
 
 ## Part IV
 
+### Write a single form
+
+* Implementing a form in `polls/details.html`
+  
+  ```html
+  <h1>{{question.question_text}}</h1>
+
+  {% if message_error %} <p><strong> {{ message_error }} </strong></p> {% endif %}
+
+  <form action="{% url 'polls:vote' question.id %}" method="post">
+    {% csrf_token %}
+    {% for choice in question.choice_set.all %}
+      <input type="radio" name="choice"  id="choice{{ forloop.count }}" value="{{ choice.id }}">
+      <label for="choice{{ forloop.count }}" >{{choice.choice_text}}</label>
+      <br>
+    {% endfor %}
+
+    <input type="submit" value="Vote">
+  </form>
 
 
+
+  ```
+
+* In the vote view: Post a vote to the selected choice
+
+```python
+
+from django.http import HttpResponseRedirect
+
+from django.urls import Reverse
+
+from .models import Choice, Question
+
+
+def vote (request, question_id):
+  question = get_object_or_404(Question, pk = question_id)
+  try:
+    selected_choice = question.choice_set.get(pk = response.POST['choice']) 
+  except (KeyError, Choice.DoesNotExist):
+
+    return render(request, 'polls/details.html', {'message_error' : "Select one choice", 'question' : question})
+
+  else:
+    selected_choice.votes += 1;
+    selected_choice.save()
+    retun HttpResponseRedirect(reverse('polls:results', args = [question.id]))
+
+```
+  * After dealing with POST data always return `HttpResponseRedirect`
+  * `reverse()` avoids harcode URLs
+
+
+* Results view
+```python
+def results (request, question_id):
+  question = get_object_or_404(Question, pk = quesiton_id)
+  return render(request, 'polls/results.html',{'question':question})
+```
+*results template
+
+```html
+<h1>{ question.question_text }</h1>
+<ul>
+{{% for choice in question.choice_set.all %}}
+  <li>{ choice.question_text }: {choice.votes} votes{choice.votes|pluralize}</li>
+{{% endfor %}}
+</ul>
+
+<a href="{% url 'polls:details' question.id %}">Vote again?</a>
+
+``` 
